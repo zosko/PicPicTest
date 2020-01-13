@@ -8,6 +8,7 @@
 
 /* Begin PBXBuildFile section */
 		6D68934C23C87B4E00EAD47C /* ViewController+Extension.swift in Sources */ = {isa = PBXBuildFile; fileRef = 6D68934B23C87B4E00EAD47C /* ViewController+Extension.swift */; };
+		6D8CB77923CCF2B90045079D /* Alamofire in Frameworks */ = {isa = PBXBuildFile; productRef = 6D8CB77823CCF2B90045079D /* Alamofire */; };
 		6D9FDEBE23C7B23A00B7036B /* AppDelegate.swift in Sources */ = {isa = PBXBuildFile; fileRef = 6D9FDEBD23C7B23A00B7036B /* AppDelegate.swift */; };
 		6D9FDEC023C7B23A00B7036B /* SceneDelegate.swift in Sources */ = {isa = PBXBuildFile; fileRef = 6D9FDEBF23C7B23A00B7036B /* SceneDelegate.swift */; };
 		6D9FDEC223C7B23A00B7036B /* ViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 6D9FDEC123C7B23A00B7036B /* ViewController.swift */; };
@@ -45,6 +46,7 @@
 			buildActionMask = 2147483647;
 			files = (
 				6DF227D123C8ED9C00CEAF85 /* MBProgressHUD in Frameworks */,
+				6D8CB77923CCF2B90045079D /* Alamofire in Frameworks */,
 				6D9FDEE523C7D59C00B7036B /* SDWebImage in Frameworks */,
 				6D9FDEE223C7C87200B7036B /* SwiftHash in Frameworks */,
 			);
@@ -148,6 +150,7 @@
 				6D9FDEE123C7C87200B7036B /* SwiftHash */,
 				6D9FDEE423C7D59C00B7036B /* SDWebImage */,
 				6DF227D023C8ED9C00CEAF85 /* MBProgressHUD */,
+				6D8CB77823CCF2B90045079D /* Alamofire */,
 			);
 			productName = testApp;
 			productReference = 6D9FDEBA23C7B23A00B7036B /* testApp.app */;
@@ -181,6 +184,7 @@
 				6D9FDEE023C7C87200B7036B /* XCRemoteSwiftPackageReference "SwiftHash" */,
 				6D9FDEE323C7D59C00B7036B /* XCRemoteSwiftPackageReference "SDWebImage" */,
 				6DF227CF23C8ED9C00CEAF85 /* XCRemoteSwiftPackageReference "MBProgressHUD" */,
+				6D8CB77723CCF2B90045079D /* XCRemoteSwiftPackageReference "Alamofire" */,
 			);
 			productRefGroup = 6D9FDEBB23C7B23A00B7036B /* Products */;
 			projectDirPath = "";
@@ -416,6 +420,14 @@
 /* End XCConfigurationList section */
 
 /* Begin XCRemoteSwiftPackageReference section */
+		6D8CB77723CCF2B90045079D /* XCRemoteSwiftPackageReference "Alamofire" */ = {
+			isa = XCRemoteSwiftPackageReference;
+			repositoryURL = "https://github.com/Alamofire/Alamofire.git";
+			requirement = {
+				kind = upToNextMajorVersion;
+				minimumVersion = 4.9.1;
+			};
+		};
 		6D9FDEE023C7C87200B7036B /* XCRemoteSwiftPackageReference "SwiftHash" */ = {
 			isa = XCRemoteSwiftPackageReference;
 			repositoryURL = "https://github.com/onmyway133/SwiftHash.git";
@@ -443,6 +455,11 @@
 /* End XCRemoteSwiftPackageReference section */
 
 /* Begin XCSwiftPackageProductDependency section */
+		6D8CB77823CCF2B90045079D /* Alamofire */ = {
+			isa = XCSwiftPackageProductDependency;
+			package = 6D8CB77723CCF2B90045079D /* XCRemoteSwiftPackageReference "Alamofire" */;
+			productName = Alamofire;
+		};
 		6D9FDEE123C7C87200B7036B /* SwiftHash */ = {
 			isa = XCSwiftPackageProductDependency;
 			package = 6D9FDEE023C7C87200B7036B /* XCRemoteSwiftPackageReference "SwiftHash" */;

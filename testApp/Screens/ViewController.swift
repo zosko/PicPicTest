@@ -27,7 +27,7 @@ class ViewController: UIViewController,UITableViewDelegate,UITableViewDataSource
     
     func getFiles(){
         MBProgressHUD.showAdded(to: self.view, animated: true)
-        API().getEventsFiles { (jsonData) in
+        API().GetEventFiles { (jsonData) in
             let arrTmp = jsonData["files"] as! [Any]
             
             for files in arrTmp{
@@ -54,9 +54,11 @@ class ViewController: UIViewController,UITableViewDelegate,UITableViewDataSource
         
         cell.textLabel!.text = modelFile.id
         
-        cell.imageView?.sd_setImage(with: URL(string: modelFile.url), placeholderImage: UIImage.init(), options:SDWebImageOptions.progressiveLoad, completed: { (image, error, type, url) in
-            self.tblFiles.reloadRows(at: [indexPath], with: .fade)
-        })
+        cell.imageView?.image = modelFile.image;
+        
+//        cell.imageView?.sd_setImage(with: URL(string: modelFile.url), placeholderImage: UIImage.init(), options:SDWebImageOptions.progressiveLoad, completed: { (image, error, type, url) in
+//            self.tblFiles.reloadRows(at: [indexPath], with: .fade)
+//        })
         
         return cell
     }
@@ -92,7 +94,7 @@ class ViewController: UIViewController,UITableViewDelegate,UITableViewDataSource
                     
                     self.showLogin { (password) in
                         MBProgressHUD.showAdded(to: self.view, animated: true)
-                        API().getToken(password: password) { (jsonData) in
+                        API().RequestToken(password: password) { (jsonData) in
                             if(jsonData.keys.contains("token")){
                                 API.shared.token = jsonData["token"] as! String
                                 print(API.shared.token)
