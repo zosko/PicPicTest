@@ -27,17 +27,21 @@ class ModelFile: NSObject {
     func initFile(data : [String : Any]) -> ModelFile{
         self.id = data["id"] as! String
         
-        API().GetEventFile(file_id: self.id, progress: { (progress) in
+        if !Database.shared.containElement(element: self.id){
+            API().GetEventFile(file_id: self.id, progress: { (progress) in
 
-        }, success: { (image) in
-            self.image = image
-            Database.shared.saveElement(element:self.id)
-            NotificationCenter.default.post(name: NSNotification.Name(rawValue: "FileFetch"), object: nil, userInfo: ["file":self.id])
-        }) { (errorMessage) in
-            Database.shared.saveElement(element:self.id)
-            self.image = UIImage(contentsOfFile: self.getPathDirectory(name: self.id))
-            NotificationCenter.default.post(name: NSNotification.Name(rawValue: "FileFetch"), object: nil, userInfo: ["file":self.id])
+            }, success: { (image) in
+                self.image = image
+                Database.shared.saveElement(element:self.id)
+                NotificationCenter.default.post(name: NSNotification.Name(rawValue: "FileFetch"), object: nil, userInfo: ["file":self.id])
+            }) { (errorMessage) in
+                Database.shared.saveElement(element:self.id)
+                self.image = UIImage(contentsOfFile: self.getPathDirectory(name: self.id))
+                NotificationCenter.default.post(name: NSNotification.Name(rawValue: "FileFetch"), object: nil, userInfo: ["file":self.id])
+            }
         }
+        
+        
         
         return self
     }

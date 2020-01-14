@@ -12,20 +12,15 @@ import MBProgressHUD
 
 class ViewController: UIViewController,UITableViewDelegate,UITableViewDataSource {
     
+    //MARK: IBOutlets
     @IBOutlet var tblFiles : UITableView!
-    @objc var checkTimerEvent : Timer!
     
+    //MARK: Variables
+    var checkTimerEvent : Timer!
     var broadcastConnection: UDPBroadcastConnection!
     var arrFiles : [ModelFile] = []
     
-    @IBAction func login(_ sender: AnyObject) {
-        do {
-            try broadcastConnection.sendBroadcast("qya2342tzt1yl")
-        } catch {
-            print("Error: \(error)\n")
-        }
-    }
-    
+    //MARK: CustomFunctions
     @objc func checkEventStatus(){
         
         //    [
@@ -38,7 +33,7 @@ class ViewController: UIViewController,UITableViewDelegate,UITableViewDataSource
         //    ]
         
         API().GetEventStatus(success: { (jsonData) in
-            
+            print(jsonData)
         }) { (errorMessage) in
             print(errorMessage)
         }
@@ -57,7 +52,7 @@ class ViewController: UIViewController,UITableViewDelegate,UITableViewDataSource
             MBProgressHUD.hide(for: self.view, animated: true)
             self.tblFiles.reloadData()
             
-            self.checkTimerEvent = Timer.scheduledTimer(timeInterval: 1, target: self, selector: #selector(self.checkEventStatus), userInfo: nil, repeats: true)
+            //self.checkTimerEvent = Timer.scheduledTimer(timeInterval: 1, target: self, selector: #selector(self.checkEventStatus), userInfo: nil, repeats: true)
             
         }) { (errorMessage) in
             MBProgressHUD.hide(for: self.view, animated: true)
@@ -65,11 +60,19 @@ class ViewController: UIViewController,UITableViewDelegate,UITableViewDataSource
         }
     }
     
+    //MARK: IBActions
+    @IBAction func login(_ sender: AnyObject) {
+        do {
+            try broadcastConnection.sendBroadcast("qya2342tzt1yl")
+        } catch {
+            print("Error: \(error)\n")
+        }
+    }
+    
     //MARK: TableViewDelegates
     func tableView(_ tableView: UITableView, numberOfRowsInSection section: Int) -> Int {
         return arrFiles.count
     }
-    
     func tableView(_ tableView: UITableView, cellForRowAt indexPath: IndexPath) -> UITableViewCell {
         let cell = tableView.dequeueReusableCell(withIdentifier: "fileCell", for: indexPath)
         
@@ -79,22 +82,24 @@ class ViewController: UIViewController,UITableViewDelegate,UITableViewDataSource
         
         cell.imageView?.image = modelFile.image;
         
-//        cell.imageView?.sd_setImage(with: URL(string: modelFile.url), placeholderImage: UIImage.init(), options:SDWebImageOptions.progressiveLoad, completed: { (image, error, type, url) in
+//        let documentsURL = FileManager.default.urls(for: .documentDirectory, in: .userDomainMask)[0]
+//        let fileURL = documentsURL.appendingPathComponent(modelFile.id)
+//
+//        cell.imageView?.sd_setImage(with: fileURL, placeholderImage: UIImage.init(), options:SDWebImageOptions.progressiveLoad, completed: { (image, error, type, url) in
 //            self.tblFiles.reloadRows(at: [indexPath], with: .fade)
 //        })
         
         return cell
     }
     func tableView(_ tableView: UITableView, didSelectRowAt indexPath: IndexPath) {
-        let _ : ModelFile = arrFiles[indexPath.row]
-        
+        let modelFile : ModelFile = arrFiles[indexPath.row]
+        print(modelFile)
     }
     
+    //MARK: UIViewControllerDelegates
     override func viewDidLoad() {
         super.viewDidLoad()
-        
-        print(Database.shared.allElements())
-        
+                
         if(Database.shared.allElements().count > 0){
             for fileName in Database.shared.allElements(){
                 self.arrFiles.append(ModelFile().initDownloadedFile(name: fileName as! String))
@@ -107,10 +112,10 @@ class ViewController: UIViewController,UITableViewDelegate,UITableViewDataSource
             let file_id = notification.userInfo?["file"] as! String
             
             for files in self.arrFiles{
-                let index = self.arrFiles.firstIndex(where: {$0 == files})!
-                
                 if(files.id == file_id){
+                    let index = self.arrFiles.firstIndex(where: {$0 == files})!
                     self.tblFiles.reloadRows(at: [(NSIndexPath.init(row: index, section: 0) as IndexPath)], with: .fade)
+                    break
                 }
             }
             

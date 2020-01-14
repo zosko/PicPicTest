@@ -8,13 +8,15 @@
 
 import UIKit
 
+#warning("make custom pagination")
+#warning("call check event status every 10 seconds")
+
 class Database: NSObject {
     var jsonDatabase: NSMutableArray
     
     static var shared: Database = {
         let instance = Database()
-        // ... configure the instance
-        // ...
+        
         return instance
     }()
     
@@ -22,6 +24,10 @@ class Database: NSObject {
         let documentsURL = FileManager.default.urls(for: .documentDirectory, in: .userDomainMask)[0]
         let fileURL = documentsURL.appendingPathComponent("database.plist")
         return fileURL
+    }
+    
+    func containElement(element: String) -> Bool{
+        return jsonDatabase.contains(element)
     }
     
     func saveElement(element:String){
