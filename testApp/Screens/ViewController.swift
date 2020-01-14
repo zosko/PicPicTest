@@ -13,6 +13,7 @@ import MBProgressHUD
 class ViewController: UIViewController,UITableViewDelegate,UITableViewDataSource {
     
     @IBOutlet var tblFiles : UITableView!
+    @objc var checkTimerEvent : Timer!
     
     var broadcastConnection: UDPBroadcastConnection!
     var arrFiles : [ModelFile] = []
@@ -25,20 +26,42 @@ class ViewController: UIViewController,UITableViewDelegate,UITableViewDataSource
         }
     }
     
+    @objc func checkEventStatus(){
+        
+        //    [
+        //    "last_settings_change": 2020-01-14T18:04:30.4111905Z,
+        //    "id": edf0f787-52cc-487b-9981-fddcd1d703eb,
+        //    "status": started,
+        //    "last_status_change": 2020-01-14T18:04:30.4111905Z,
+        //    "name": Sample Event,
+        //    "file_count": 35
+        //    ]
+        
+        API().GetEventStatus(success: { (jsonData) in
+            
+        }) { (errorMessage) in
+            print(errorMessage)
+        }
+    }
+    
     func getFiles(){
         MBProgressHUD.showAdded(to: self.view, animated: true)
-        API().GetEventFiles { (jsonData) in
+
+        API().GetEventFiles(success: { (jsonData) in
             let arrTmp = jsonData["files"] as! [Any]
             
             for files in arrTmp{
                 self.arrFiles.append(ModelFile().initFile(data: files as! Dictionary))
             }
 
-            OperationQueue.main.addOperation {
-                MBProgressHUD.hide(for: self.view, animated: true)
-                self.tblFiles.reloadData()
-            }
+            MBProgressHUD.hide(for: self.view, animated: true)
+            self.tblFiles.reloadData()
             
+            self.checkTimerEvent = Timer.scheduledTimer(timeInterval: 1, target: self, selector: #selector(self.checkEventStatus), userInfo: nil, repeats: true)
+            
+        }) { (errorMessage) in
+            MBProgressHUD.hide(for: self.view, animated: true)
+            self.showMessage(message: errorMessage)
         }
     }
     
@@ -63,12 +86,21 @@ class ViewController: UIViewController,UITableViewDelegate,UITableViewDataSource
         return cell
     }
     func tableView(_ tableView: UITableView, didSelectRowAt indexPath: IndexPath) {
-        let modelFile : ModelFile = arrFiles[indexPath.row]
-        UIApplication.shared.open(URL(string: modelFile.url)!, options: [:], completionHandler: nil)
+        let _ : ModelFile = arrFiles[indexPath.row]
+        
     }
     
     override func viewDidLoad() {
         super.viewDidLoad()
+        
+        print(Database.shared.allElements())
+        
+        if(Database.shared.allElements().count > 0){
+            for fileName in Database.shared.allElements(){
+                self.arrFiles.append(ModelFile().initDownloadedFile(name: fileName as! String))
+            }
+            tblFiles.reloadData()
+        }
         
         NotificationCenter.default.addObserver(forName: NSNotification.Name(rawValue: "FileFetch"), object: nil, queue: .main) { (notification) in
             
@@ -94,19 +126,19 @@ class ViewController: UIViewController,UITableViewDelegate,UITableViewDataSource
                     
                     self.showLogin { (password) in
                         MBProgressHUD.showAdded(to: self.view, animated: true)
-                        API().RequestToken(password: password) { (jsonData) in
+                        
+                        API().RequestToken(password: password, success: { (jsonData) in
+                            MBProgressHUD.hide(for: self.view, animated: true)
                             if(jsonData.keys.contains("token")){
                                 API.shared.token = jsonData["token"] as! String
-                                print(API.shared.token)
-                                
-                                OperationQueue.main.addOperation {
-                                    MBProgressHUD.hide(for: self.view, animated: true)
-                                    self.getFiles()
-                                }
+                                self.getFiles()
                             }
                             else{
                                 self.showMessage(message: "Invalid password")
                             }
+                        }) { (errorMessage) in
+                            MBProgressHUD.hide(for: self.view, animated: true)
+                            self.showMessage(message: errorMessage)
                         }
                     }
                 },
