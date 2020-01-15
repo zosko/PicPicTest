@@ -8,8 +8,6 @@
 
 import UIKit
 
-#warning("make custom pagination")
-
 class Database: NSObject {
     var jsonDatabase: NSMutableArray
     

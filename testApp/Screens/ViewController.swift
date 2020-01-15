@@ -14,6 +14,7 @@ class ViewController: UIViewController,UITableViewDelegate,UITableViewDataSource
     
     //MARK: IBOutlets
     @IBOutlet var tblFiles : UITableView!
+    @IBOutlet var btnLogin : UIButton!
     
     //MARK: Variables
     var checkTimerEvent : Timer!
@@ -131,7 +132,8 @@ class ViewController: UIViewController,UITableViewDelegate,UITableViewDataSource
     }
     func tableView(_ tableView: UITableView, didSelectRowAt indexPath: IndexPath) {
         let modelFile : ModelFile = arrFiles[indexPath.row]
-        print(modelFile)
+        let ac = UIActivityViewController(activityItems: [modelFile.image!], applicationActivities: nil)
+        present(ac, animated: true)
     }
     func tableView(_ tableView: UITableView, willDisplay cell: UITableViewCell, forRowAt indexPath: IndexPath) {
         let lastElement = arrFiles.count - 1
@@ -185,20 +187,17 @@ class ViewController: UIViewController,UITableViewDelegate,UITableViewDataSource
 
                         API().RequestToken(password: password, success: { (jsonData) in
                             MBProgressHUD.hide(for: self.view, animated: true)
-                            if(jsonData.keys.contains("token")){
-                                API.shared.token = jsonData["token"] as! String
+                            self.btnLogin.isHidden = true
+                            
+                            API.shared.token = jsonData["token"] as! String
 
-                                self.checkTimerEvent = Timer.scheduledTimer(timeInterval: 10, target: self, selector: #selector(self.checkEventStatus), userInfo: nil, repeats: true)
+                            self.checkTimerEvent = Timer.scheduledTimer(timeInterval: 10, target: self, selector: #selector(self.checkEventStatus), userInfo: nil, repeats: true)
 
-                                if(Database.shared.allElements().count > 0){
-                                    self.getNextFiles()
-                                }
-                                else{
-                                    self.getFirstFiles()
-                                }
+                            if(Database.shared.allElements().count > 0){
+                                self.getNextFiles()
                             }
                             else{
-                                self.showMessage(message: "Invalid password")
+                                self.getFirstFiles()
                             }
                         }) { (errorMessage) in
                             MBProgressHUD.hide(for: self.view, animated: true)

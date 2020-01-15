@@ -40,9 +40,6 @@ class ModelFile: NSObject {
                 NotificationCenter.default.post(name: NSNotification.Name(rawValue: "FileFetch"), object: nil, userInfo: ["file":self.id])
             }
         }
-        
-        
-        
         return self
     }
 }
