@@ -23,7 +23,7 @@ class ViewController: UIViewController,UITableViewDelegate,UITableViewDataSource
     var lastFileID = ""
     var lastFileCount = 0
     var file_count = 0
-    let hudLogin : MBProgressHUD = MBProgressHUD.init()
+    var hudLogin : MBProgressHUD?
     var oneShot : DispatchSourceTimer!
     
     //MARK: CustomFunctions
@@ -93,17 +93,17 @@ class ViewController: UIViewController,UITableViewDelegate,UITableViewDataSource
     @IBAction func login(_ sender: AnyObject) {
         do {
             try broadcastConnection.sendBroadcast("qya2342tzt1yl")
-            hudLogin.show(animated: true)
+            hudLogin = MBProgressHUD.showAdded(to: self.view, animated: true)
             
             oneShot = DispatchSource.makeTimerSource(queue: DispatchQueue.main)
             oneShot.schedule(deadline: .now() + 2)
             oneShot.setEventHandler {
-                self.hudLogin.hide(animated: false)
+                self.hudLogin?.hide(animated: false)
                 self.showMessage(message: "Try again")
             }
             oneShot.activate()
         } catch {
-            hudLogin.hide(animated: false)
+            hudLogin?.hide(animated: false)
             self.showMessage(message: error.localizedDescription)
         }
     }
@@ -177,7 +177,7 @@ class ViewController: UIViewController,UITableViewDelegate,UITableViewDataSource
                 port: 19890,
                 handler: { (ipAddress: String, port: Int, response: Data) -> Void in
                     let server: [String:Any] = try! JSONSerialization.jsonObject(with: response, options: .allowFragments) as! [String : Any]
-                    self.hudLogin.hide(animated: false)
+                    self.hudLogin?.hide(animated: false)
                     self.oneShot.cancel()
                     
                     API.shared.server_ip = server["ip"] as! String
@@ -206,7 +206,7 @@ class ViewController: UIViewController,UITableViewDelegate,UITableViewDataSource
                     }
                 },
                 errorHandler: { (error) in
-                    self.hudLogin.hide(animated: false)
+                    self.hudLogin?.hide(animated: false)
                     self.showMessage(message: error.localizedDescription)
             })
         } catch {
