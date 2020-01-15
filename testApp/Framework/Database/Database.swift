@@ -9,7 +9,6 @@
 import UIKit
 
 #warning("make custom pagination")
-#warning("call check event status every 10 seconds")
 
 class Database: NSObject {
     var jsonDatabase: NSMutableArray

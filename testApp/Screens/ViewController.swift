@@ -19,40 +19,68 @@ class ViewController: UIViewController,UITableViewDelegate,UITableViewDataSource
     var checkTimerEvent : Timer!
     var broadcastConnection: UDPBroadcastConnection!
     var arrFiles : [ModelFile] = []
+    var lastFileID = ""
+    var lastFileCount = 0
+    var file_count = 0
+    let hudLogin : MBProgressHUD = MBProgressHUD.init()
+    var oneShot : DispatchSourceTimer!
     
     //MARK: CustomFunctions
     @objc func checkEventStatus(){
-        
-        //    [
-        //    "last_settings_change": 2020-01-14T18:04:30.4111905Z,
-        //    "id": edf0f787-52cc-487b-9981-fddcd1d703eb,
-        //    "status": started,
-        //    "last_status_change": 2020-01-14T18:04:30.4111905Z,
-        //    "name": Sample Event,
-        //    "file_count": 35
-        //    ]
-        
         API().GetEventStatus(success: { (jsonData) in
-            print(jsonData)
+            self.file_count = jsonData["file_count"] as! Int
         }) { (errorMessage) in
             print(errorMessage)
         }
     }
-    
-    func getFiles(){
+    func getFirstFiles(){
         MBProgressHUD.showAdded(to: self.view, animated: true)
 
         API().GetEventFiles(success: { (jsonData) in
-            let arrTmp = jsonData["files"] as! [Any]
+            let allElements = jsonData["files"] as! [Any]
             
-            for files in arrTmp{
+            var first10: [Any] = []
+            
+            if allElements.count > 10{
+                first10 = Array(allElements[0..<10])
+            }
+            
+            for files in first10{
                 self.arrFiles.append(ModelFile().initFile(data: files as! Dictionary))
             }
+            
+            self.lastFileID = self.arrFiles.last!.id
+            self.lastFileCount = self.arrFiles.count
 
             MBProgressHUD.hide(for: self.view, animated: true)
             self.tblFiles.reloadData()
             
-            //self.checkTimerEvent = Timer.scheduledTimer(timeInterval: 1, target: self, selector: #selector(self.checkEventStatus), userInfo: nil, repeats: true)
+        }) { (errorMessage) in
+            MBProgressHUD.hide(for: self.view, animated: true)
+            self.showMessage(message: errorMessage)
+        }
+    }
+    func getNextFiles(){
+        MBProgressHUD.showAdded(to: self.view, animated: true)
+
+        API().GetEventFiles(from_id: lastFileID, success: { (jsonData) in
+            let allElements = jsonData["files"] as! [Any]
+            
+            var first10: [Any] = allElements
+            
+            if allElements.count > 10{
+                first10 = Array(allElements[0..<10])
+            }
+            
+            for files in first10{
+                self.arrFiles.append(ModelFile().initFile(data: files as! Dictionary))
+            }
+            
+            self.lastFileID = self.arrFiles.last!.id
+            self.lastFileCount = self.arrFiles.count
+            
+            MBProgressHUD.hide(for: self.view, animated: true)
+            self.tblFiles.reloadData()
             
         }) { (errorMessage) in
             MBProgressHUD.hide(for: self.view, animated: true)
@@ -64,8 +92,18 @@ class ViewController: UIViewController,UITableViewDelegate,UITableViewDataSource
     @IBAction func login(_ sender: AnyObject) {
         do {
             try broadcastConnection.sendBroadcast("qya2342tzt1yl")
+            hudLogin.show(animated: true)
+            
+            oneShot = DispatchSource.makeTimerSource(queue: DispatchQueue.main)
+            oneShot.schedule(deadline: .now() + 2)
+            oneShot.setEventHandler {
+                self.hudLogin.hide(animated: false)
+                self.showMessage(message: "Try again")
+            }
+            oneShot.activate()
         } catch {
-            print("Error: \(error)\n")
+            hudLogin.hide(animated: false)
+            self.showMessage(message: error.localizedDescription)
         }
     }
     
@@ -95,6 +133,13 @@ class ViewController: UIViewController,UITableViewDelegate,UITableViewDataSource
         let modelFile : ModelFile = arrFiles[indexPath.row]
         print(modelFile)
     }
+    func tableView(_ tableView: UITableView, willDisplay cell: UITableViewCell, forRowAt indexPath: IndexPath) {
+        let lastElement = arrFiles.count - 1
+        
+        if indexPath.row == lastElement && lastFileCount != file_count {
+            getNextFiles()
+        }
+    }
     
     //MARK: UIViewControllerDelegates
     override func viewDidLoad() {
@@ -104,6 +149,9 @@ class ViewController: UIViewController,UITableViewDelegate,UITableViewDataSource
             for fileName in Database.shared.allElements(){
                 self.arrFiles.append(ModelFile().initDownloadedFile(name: fileName as! String))
             }
+            lastFileID = arrFiles.last!.id
+            lastFileCount = arrFiles.count
+            file_count = lastFileCount
             tblFiles.reloadData()
         }
         
@@ -126,17 +174,28 @@ class ViewController: UIViewController,UITableViewDelegate,UITableViewDataSource
             broadcastConnection = try UDPBroadcastConnection(
                 port: 19890,
                 handler: { (ipAddress: String, port: Int, response: Data) -> Void in
-                    API.shared.server_ip = ipAddress
-                    API.shared.server_port = 80
+                    let server: [String:Any] = try! JSONSerialization.jsonObject(with: response, options: .allowFragments) as! [String : Any]
+                    self.hudLogin.hide(animated: false)
+                    self.oneShot.cancel()
                     
+                    API.shared.server_ip = server["ip"] as! String
+                    API.shared.server_port = server["port"] as! Int
+                    MBProgressHUD.hide(for: self.view, animated: true)
                     self.showLogin { (password) in
-                        MBProgressHUD.showAdded(to: self.view, animated: true)
-                        
+
                         API().RequestToken(password: password, success: { (jsonData) in
                             MBProgressHUD.hide(for: self.view, animated: true)
                             if(jsonData.keys.contains("token")){
                                 API.shared.token = jsonData["token"] as! String
-                                self.getFiles()
+
+                                self.checkTimerEvent = Timer.scheduledTimer(timeInterval: 10, target: self, selector: #selector(self.checkEventStatus), userInfo: nil, repeats: true)
+
+                                if(Database.shared.allElements().count > 0){
+                                    self.getNextFiles()
+                                }
+                                else{
+                                    self.getFirstFiles()
+                                }
                             }
                             else{
                                 self.showMessage(message: "Invalid password")
@@ -148,10 +207,11 @@ class ViewController: UIViewController,UITableViewDelegate,UITableViewDataSource
                     }
                 },
                 errorHandler: { (error) in
-                    print("Error: \(error)\n")
+                    self.hudLogin.hide(animated: false)
+                    self.showMessage(message: error.localizedDescription)
             })
         } catch {
-            print("Error: \(error)\n")
+            self.showMessage(message: error.localizedDescription)
         }
     }
 
