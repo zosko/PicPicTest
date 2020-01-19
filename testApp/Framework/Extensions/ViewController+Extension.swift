@@ -15,6 +15,7 @@ extension ViewController{
         let alert = UIAlertController.init(title: "Password", message: "Enter password", preferredStyle: .alert)
         alert.addTextField { (textField) in
             textField.placeholder = "password"
+            textField.isSecureTextEntry = true
         }
         alert.addAction(UIAlertAction(title: "Enter", style: .default, handler: { (action) in
             password((alert.textFields?.first!.text)!)

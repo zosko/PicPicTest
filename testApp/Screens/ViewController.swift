@@ -29,18 +29,38 @@ class ViewController: UIViewController,UITableViewDelegate,UITableViewDataSource
     //MARK: CustomFunctions
     @objc func checkEventStatus(){
         API().GetEventStatus(success: { (jsonData) in
-            self.file_count = jsonData["file_count"] as! Int
+            
+            if jsonData.keys.count > 0 {
+                self.file_count = jsonData["file_count"] as! Int
+                
+                if self.lastFileCount < self.file_count {
+                    self.getNextFiles()
+                }
+            }
+            
         }) { (errorMessage) in
             print(errorMessage)
         }
     }
+    @objc func refreshTable(sender: UIRefreshControl) {
+        sender.endRefreshing()
+        getFirstFiles()
+    }
     func getFirstFiles(){
+        
+        self.arrFiles = []
+        self.tblFiles.reloadData()
+        Database.shared.cleanElements()
+        file_count = 0
+        lastFileCount = 0
+        lastFileID = ""
+        
         MBProgressHUD.showAdded(to: self.view, animated: true)
 
         API().GetEventFiles(success: { (jsonData) in
             let allElements = jsonData["files"] as! [Any]
             
-            var first10: [Any] = []
+            var first10: [Any] = allElements
             
             if allElements.count > 10{
                 first10 = Array(allElements[0..<10])
@@ -50,8 +70,10 @@ class ViewController: UIViewController,UITableViewDelegate,UITableViewDataSource
                 self.arrFiles.append(ModelFile().initFile(data: files as! Dictionary))
             }
             
-            self.lastFileID = self.arrFiles.last!.id
             self.lastFileCount = self.arrFiles.count
+            if(self.lastFileCount > 0){
+                self.lastFileID = self.arrFiles.last!.id
+            }
 
             MBProgressHUD.hide(for: self.view, animated: true)
             self.tblFiles.reloadData()
@@ -138,14 +160,18 @@ class ViewController: UIViewController,UITableViewDelegate,UITableViewDataSource
     func tableView(_ tableView: UITableView, willDisplay cell: UITableViewCell, forRowAt indexPath: IndexPath) {
         let lastElement = arrFiles.count - 1
         
-        if indexPath.row == lastElement && lastFileCount != file_count {
-            getNextFiles()
+        if indexPath.row == lastElement && lastFileCount < file_count {
+            //getNextFiles()
         }
     }
     
     //MARK: UIViewControllerDelegates
     override func viewDidLoad() {
         super.viewDidLoad()
+        
+        let refreshControl = UIRefreshControl()
+        refreshControl.addTarget(self, action: #selector(refreshTable(sender:)), for: .valueChanged)
+        tblFiles.addSubview(refreshControl)
                 
         if(Database.shared.allElements().count > 0){
             for fileName in Database.shared.allElements(){

@@ -36,6 +36,11 @@ class Database: NSObject {
         return jsonDatabase
     }
     
+    func cleanElements() -> Void{
+        jsonDatabase = NSMutableArray.init()
+        (jsonDatabase as NSArray).write(toFile: pathDatabase().path, atomically: true)
+    }
+    
     private override init() {
         
         let documentsURL = FileManager.default.urls(for: .documentDirectory, in: .userDomainMask)[0]
