@@ -141,21 +141,19 @@ class ViewController: UIViewController,UITableViewDelegate,UITableViewDataSource
         
         cell.textLabel!.text = modelFile.id
         
-        cell.imageView?.image = modelFile.image;
-        
-//        let documentsURL = FileManager.default.urls(for: .documentDirectory, in: .userDomainMask)[0]
-//        let fileURL = documentsURL.appendingPathComponent(modelFile.id)
-//
-//        cell.imageView?.sd_setImage(with: fileURL, placeholderImage: UIImage.init(), options:SDWebImageOptions.progressiveLoad, completed: { (image, error, type, url) in
-//            self.tblFiles.reloadRows(at: [indexPath], with: .fade)
-//        })
+//        cell.imageView?.image = modelFile.image;
+        cell.imageView?.sd_setImage(with: modelFile.url, completed: nil)
         
         return cell
     }
     func tableView(_ tableView: UITableView, didSelectRowAt indexPath: IndexPath) {
         let modelFile : ModelFile = arrFiles[indexPath.row]
-        let ac = UIActivityViewController(activityItems: [modelFile.image!], applicationActivities: nil)
-        present(ac, animated: true)
+        let controller = UIActivityViewController(activityItems: [modelFile.image!], applicationActivities: nil)
+        present(controller, animated: true, completion: nil)
+        if let popOver = controller.popoverPresentationController {
+            popOver.sourceView = self.btnLogin
+            popOver.sourceRect = CGRect(x: 0, y: 0, width: 200, height: 200)
+        }
     }
     func tableView(_ tableView: UITableView, willDisplay cell: UITableViewCell, forRowAt indexPath: IndexPath) {
         let lastElement = arrFiles.count - 1
@@ -183,7 +181,7 @@ class ViewController: UIViewController,UITableViewDelegate,UITableViewDataSource
             tblFiles.reloadData()
         }
         
-        NotificationCenter.default.addObserver(forName: NSNotification.Name(rawValue: "FileFetch"), object: nil, queue: .main) { (notification) in
+        NotificationCenter.default.addObserver(forName: Notifications.DidFileDownloaded, object: nil, queue: .main) { (notification) in
             
             let file_id = notification.userInfo?["file"] as! String
             
@@ -194,7 +192,6 @@ class ViewController: UIViewController,UITableViewDelegate,UITableViewDataSource
                     break
                 }
             }
-            
         }
         
         

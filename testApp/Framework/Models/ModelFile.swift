@@ -8,14 +8,25 @@
 
 import UIKit
 
+enum Notifications {
+    static let DidFileDownloaded = NSNotification.Name(rawValue: "DidFileDownloaded")
+}
+
 class ModelFile: NSObject {
     var id : String = ""
     var image : UIImage?
+    var url : URL?
     
     private func getPathDirectory(name:String) -> String{
         let documentsURL = FileManager.default.urls(for: .documentDirectory, in: .userDomainMask)[0]
         let fileURL = documentsURL.appendingPathComponent(name)
         return fileURL.path
+    }
+    
+    private func getURLDirectory(name:String) -> URL{
+        let documentsURL = FileManager.default.urls(for: .documentDirectory, in: .userDomainMask)[0]
+        let fileURL = documentsURL.appendingPathComponent(name)
+        return fileURL
     }
     
     func initDownloadedFile(name : String ) -> ModelFile{
@@ -32,12 +43,14 @@ class ModelFile: NSObject {
 
             }, success: { (image) in
                 self.image = image
+                self.url = self.getURLDirectory(name: self.id)
                 Database.shared.saveElement(element:self.id)
-                NotificationCenter.default.post(name: NSNotification.Name(rawValue: "FileFetch"), object: nil, userInfo: ["file":self.id])
+                NotificationCenter.default.post(name: Notifications.DidFileDownloaded, object: nil, userInfo: ["file":self.id])
             }) { (errorMessage) in
                 Database.shared.saveElement(element:self.id)
                 self.image = UIImage(contentsOfFile: self.getPathDirectory(name: self.id))
-                NotificationCenter.default.post(name: NSNotification.Name(rawValue: "FileFetch"), object: nil, userInfo: ["file":self.id])
+                self.url = self.getURLDirectory(name: self.id)
+                NotificationCenter.default.post(name: Notifications.DidFileDownloaded, object: nil, userInfo: ["file":self.id])
             }
         }
         return self

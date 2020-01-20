@@ -17,10 +17,10 @@ class Database: NSObject {
         return instance
     }()
     
-    private func pathDatabase() -> URL{
+    private func pathDatabase() -> String{
         let documentsURL = FileManager.default.urls(for: .documentDirectory, in: .userDomainMask)[0]
         let fileURL = documentsURL.appendingPathComponent("database.plist")
-        return fileURL
+        return fileURL.path
     }
     
     func containElement(element: String) -> Bool{
@@ -29,7 +29,7 @@ class Database: NSObject {
     
     func saveElement(element:String){
         jsonDatabase.add(element)
-        (jsonDatabase as NSArray).write(toFile: pathDatabase().path, atomically: true)
+        (jsonDatabase as NSArray).write(toFile: pathDatabase(), atomically: true)
     }
     
     func allElements() -> NSArray{
@@ -38,7 +38,7 @@ class Database: NSObject {
     
     func cleanElements() -> Void{
         jsonDatabase = NSMutableArray.init()
-        (jsonDatabase as NSArray).write(toFile: pathDatabase().path, atomically: true)
+        (jsonDatabase as NSArray).write(toFile: pathDatabase(), atomically: true)
     }
     
     private override init() {
