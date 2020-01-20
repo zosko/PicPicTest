@@ -142,7 +142,10 @@ class ViewController: UIViewController,UITableViewDelegate,UITableViewDataSource
         cell.textLabel!.text = modelFile.id
         
 //        cell.imageView?.image = modelFile.image;
-        cell.imageView?.sd_setImage(with: modelFile.url, completed: nil)
+        
+        cell.imageView?.sd_setImage(with: modelFile.url, placeholderImage: UIImage.init(), options:SDWebImageOptions.progressiveLoad, completed: { (image, error, type, url) in
+            self.tblFiles.reloadRows(at: [indexPath], with: .fade)
+        })
         
         return cell
     }

@@ -32,6 +32,7 @@ class ModelFile: NSObject {
     func initDownloadedFile(name : String ) -> ModelFile{
         self.id = name
         self.image = UIImage(contentsOfFile: getPathDirectory(name: name))
+        self.url = self.getURLDirectory(name: name)
         return self
     }
     
