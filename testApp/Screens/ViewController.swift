@@ -10,10 +10,9 @@ import UIKit
 import SDWebImage
 import MBProgressHUD
 
-class ViewController: UIViewController,UITableViewDelegate,UITableViewDataSource {
-    
+class ViewController: UIViewController,UICollectionViewDelegate,UICollectionViewDataSource {
     //MARK: IBOutlets
-    @IBOutlet var tblFiles : UITableView!
+    @IBOutlet var tblFiles : UICollectionView!
     @IBOutlet var btnLogin : UIButton!
     
     //MARK: Variables
@@ -130,26 +129,22 @@ class ViewController: UIViewController,UITableViewDelegate,UITableViewDataSource
         }
     }
     
-    //MARK: TableViewDelegates
-    func tableView(_ tableView: UITableView, numberOfRowsInSection section: Int) -> Int {
+    //MARK: CollectionViewDelegates
+    func collectionView(_ collectionView: UICollectionView, numberOfItemsInSection section: Int) -> Int {
         return arrFiles.count
     }
-    func tableView(_ tableView: UITableView, cellForRowAt indexPath: IndexPath) -> UITableViewCell {
-        let cell = tableView.dequeueReusableCell(withIdentifier: "fileCell", for: indexPath)
+    func collectionView(_ collectionView: UICollectionView, cellForItemAt indexPath: IndexPath) -> UICollectionViewCell {
+        let cell = collectionView.dequeueReusableCell(withReuseIdentifier: "fileCell", for: indexPath) as! fileCell
         
         let modelFile : ModelFile = arrFiles[indexPath.row]
-        
-        cell.textLabel!.text = modelFile.id
-        
-//        cell.imageView?.image = modelFile.image;
-        
-        cell.imageView?.sd_setImage(with: modelFile.url, placeholderImage: UIImage.init(), options:SDWebImageOptions.progressiveLoad, completed: { (image, error, type, url) in
-            self.tblFiles.reloadRows(at: [indexPath], with: .fade)
+                        
+        cell.imgPhoto.sd_setImage(with: modelFile.url, placeholderImage: UIImage.init(), options:SDWebImageOptions.progressiveLoad, completed: { (image, error, type, url) in
+            self.tblFiles.reloadItems(at: [indexPath])
         })
         
         return cell
     }
-    func tableView(_ tableView: UITableView, didSelectRowAt indexPath: IndexPath) {
+    func collectionView(_ collectionView: UICollectionView, didSelectItemAt indexPath: IndexPath) {
         let modelFile : ModelFile = arrFiles[indexPath.row]
         let controller = UIActivityViewController(activityItems: [modelFile.image!], applicationActivities: nil)
         present(controller, animated: true, completion: nil)
@@ -158,7 +153,7 @@ class ViewController: UIViewController,UITableViewDelegate,UITableViewDataSource
             popOver.sourceRect = CGRect(x: 0, y: 0, width: 200, height: 200)
         }
     }
-    func tableView(_ tableView: UITableView, willDisplay cell: UITableViewCell, forRowAt indexPath: IndexPath) {
+    func collectionView(_ collectionView: UICollectionView, willDisplay cell: UICollectionViewCell, forItemAt indexPath: IndexPath) {
         let lastElement = arrFiles.count - 1
         
         if indexPath.row == lastElement && lastFileCount < file_count {
@@ -191,7 +186,7 @@ class ViewController: UIViewController,UITableViewDelegate,UITableViewDataSource
             for files in self.arrFiles{
                 if(files.id == file_id){
                     let index = self.arrFiles.firstIndex(where: {$0 == files})!
-                    self.tblFiles.reloadRows(at: [(NSIndexPath.init(row: index, section: 0) as IndexPath)], with: .fade)
+                    self.tblFiles.reloadItems(at: [(NSIndexPath.init(row: index, section: 0) as IndexPath)])
                     break
                 }
             }
